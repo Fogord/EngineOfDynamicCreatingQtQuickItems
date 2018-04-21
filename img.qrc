@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>img/back.png</file>
+        <file>img/settings.png</file>
+        <file>img/clear.png</file>
+        <file>img/menu.png</file>
+        <file>img/logo.png</file>
+        <file>img/bgMenu.png</file>
+        <file>img/delete.png</file>
+        <file>img/edit.png</file>
+    </qresource>
+</RCC>
