@@ -5,8 +5,7 @@
 //The files for including
 var jsFiles = [
             {path: "../js/engine.js"},
-            {path: "../js/localStorage.js"},
-            {path: "../js/processes/timers/timers.js"},
+            {path: "../js/localStorage.js"}
         ];
 
 //The loop for checking including files
@@ -36,24 +35,23 @@ var app = (function () {
         var item = [{
             componentName: "Item",
             elements: [{
-                            componentName: "Line"
-                      },{
-                            componentName: "Button",
-                            property: {
-                                text: "Timers"
-                            },
-                            publish: {
-                                clicked: "timersCreate",
-                            },
-                            subscribe: {
-                                timersCreate: function() {
-                                    timers.start(root);
-                                    this.parent.visible = false;
+                                componentName: "Line"
+                          },{
+                                componentName: "Button",
+                                property: {
+                                    text: "Name of Button"
+                                },
+                                publish: {
+                                    clicked: "Signal From BTN",
+                                },
+                                subscribe: {
+                                    signalFromBTN: function() {
+                                        //todo
+                                    }
                                 }
-                            }
-                      },{
-                            componentName: "Line"
-                      }]
+                          },{
+                                componentName: "Line"
+                          }] // elements that describe processes
             }];
 
         return item;

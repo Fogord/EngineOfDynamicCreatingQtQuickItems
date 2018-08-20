@@ -9,10 +9,6 @@ QT += qml quick sql multimedia core bluetooth
 CONFIG += c++11
 CONFIG -= bitcode
 
-HEADERS += \
-    sql_engine.h \
-    mediator.h
-
 SOURCES += main.cpp \
 
 RESOURCES += \
@@ -26,10 +22,6 @@ ios {
     ios_icon.files = $$files($$PWD/iconApp/Icon-App-*.png)
     QMAKE_BUNDLE_DATA += ios_icon
 }
-
-macx: LIBS += -L$$PWD/../../../../../../../usr/local/Cellar/openssl/1.0.2j/lib/ -lcrypto -lssl
-INCLUDEPATH += $$PWD/../../../../../../../usr/local/Cellar/openssl/1.0.2j/include
-DEPENDPATH += $$PWD/../../../../../../../usr/local/Cellar/openssl/1.0.2j/include
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =

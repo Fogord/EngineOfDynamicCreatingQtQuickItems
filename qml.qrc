@@ -14,5 +14,12 @@
         <file>qml/components/ComponentItem.qml</file>
         <file>qml/components/ComponentHeader.qml</file>
         <file>qml/components/ComponentPopup.qml</file>
+        <file>qml/components/ComponentTimer.qml</file>
+        <file>qml/components/ComponentBluetooth.qml</file>
+        <file>qml/components/ComponentPopupEditText.qml</file>
+        <file>qml/components/ComponentList2.qml</file>
+        <file>qml/components/ComponentClock.qml</file>
+        <file>qml/components/ComponentSpinner.qml</file>
+        <file>qml/components/ComponentPopupEditTime.qml</file>
     </qresource>
 </RCC>
