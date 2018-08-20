@@ -2,26 +2,30 @@ TEMPLATE = app
 
 TARGET = EngineOfDynamicCreatingQtQuickItems
 
-QT += qml quick sql
+QT += qml quick sql multimedia core bluetooth
 
 #PATH =
 
 CONFIG += c++11
+CONFIG -= bitcode
 
 HEADERS += \
     sql_engine.h \
     mediator.h
 
 SOURCES += main.cpp \
-    sql_engine.cpp \
-    mediator.cpp
 
 RESOURCES += \
     js.qrc \
     img.qrc \
-    qml.qrc
+    qml.qrc \
+    qtquickcontrols2.conf
 
-#QT_LOGGING_RULES=qt.network.ssl.warning=false
+ios {
+    QMAKE_INFO_PLIST = $$PWD/info.plist
+    ios_icon.files = $$files($$PWD/iconApp/Icon-App-*.png)
+    QMAKE_BUNDLE_DATA += ios_icon
+}
 
 macx: LIBS += -L$$PWD/../../../../../../../usr/local/Cellar/openssl/1.0.2j/lib/ -lcrypto -lssl
 INCLUDEPATH += $$PWD/../../../../../../../usr/local/Cellar/openssl/1.0.2j/include

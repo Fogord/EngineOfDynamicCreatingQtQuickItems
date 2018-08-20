@@ -23,15 +23,18 @@ var createPage = (function  () {
                 "Line",
                 "Input",
                 "List",
-                "Popup"
+                "Popup",
+                "PopupEditText",
+                "PopupEditTime",
+                "Timer",
+                "Clock",
+                "Bluetooth"
             ];
 
     // The function for creating items from componentList and pushing those in componentCreated
     var createAllComponents = (function () {
         for(var i = 0; i < componentList.length; i++) {
             componentCreated[componentList[i]] = Qt.createComponent("../qml/components/Component" + componentList[i] + ".qml");
-
-            console.log(JSON.stringify(componentCreated[componentList[i]]))
 
             if(componentCreated[componentList[i]].status !== 1 ) {
                 console.log("Status:", componentCreated[componentList[i]].status);
@@ -51,8 +54,8 @@ var createPage = (function  () {
     var addElements = function (arrayOfElements, parentElement) {
         var priviosElement, anchorsTopElement, anchorsBottomElement;
 
-        if(!arrayOfElements["componentName"])
-            throw"You have to create elements with property \"componentName\"";
+//        if(!arrayOfElements["componentName"])
+//            throw"You have to create elements with property \"componentName\"";
 
         var newChildObject = createElements(arrayOfElements["componentName"], arrayOfElements["property"] || {}, parentElement);
 
@@ -61,15 +64,24 @@ var createPage = (function  () {
 
         fillModel(newChildObject, arrayOfElements["model"]);
 
-        if(newChildObject.objectName !== "Popup"){
-            if (arrayOfParents.length > 0){
-                priviosElement = arrayOfParents[arrayOfParents.length - 1];
-                anchorsTopElement = priviosElement.bottom;
-            } else {
-                anchorsTopElement = parentElement.top;
-            }
+        Object.defineProperty(newChildObject, "observer", { //for get observer from anywhere
+                                  enumerable: false,
+                                  configurable: false,
+                                  writable: false,
+                                  value: observer
+                              })
 
-            newChildObject.anchors.top = anchorsTopElement
+        if(!newChildObject.free) {
+            if(newChildObject.objectName !== "Popup" && newChildObject.objectName !== "PopupEditText" && newChildObject.objectName !== "PopupEditTime" &&newChildObject.objectName !== "Timer" && newChildObject.parent.objectName !== "Row" ){
+                if (arrayOfParents.length > 0){
+                    priviosElement = arrayOfParents[arrayOfParents.length - 1];
+                    anchorsTopElement = priviosElement.bottom;
+                } else {
+                    anchorsTopElement = parentElement.top;
+                }
+
+                newChildObject.anchors.top = anchorsTopElement
+            }
         }
 
         if(arrayOfElements["elements"] && arrayOfElements["elements"].length !== 0) {
@@ -122,7 +134,7 @@ var createPage = (function  () {
                         publishCalback({ keyConnection:key, publisherType: publish[key], publishContext: object});
                     }
                     catch (err) {
-                        throw "Error binding publish" + JSON.stringify(err)
+                        throw "Error binding publish " + JSON.stringify(err) + " " + err
                     }
                 }
             }
@@ -174,12 +186,14 @@ var createPage = (function  () {
                         }
 
                         object[key] = properties[key];
+
+
                     }
                     catch (err) {
                         fillElemetProperty(object[key], properties[key]);
                     }
                 }
-            }
+            }            
         }
     }
 
@@ -220,7 +234,14 @@ var publisher = {
         if (typeof this.subscribers[type] === "undefined") {
             this.subscribers[type] = [];
         }
+
         this.subscribers[type].push({fn: fn, context: context || this});
+
+        for(var key in this.subscribers[type]) {
+            if (this.subscribers[type][key].context === null) {
+                this.subscribers[type].splice(key, 1);
+            }
+        }
     },
     // The function that help to usubscribe callback from publishe by publisheType
     unsubscribe: function (type, fn, context) {
@@ -232,18 +253,21 @@ var publisher = {
     },
     // The function contein all logic of algorithm observer
     visitSubscribers: function (action, type, fn, context) {
-        var pubtype = type || 'any',
-                subscribers = this.subscribers[pubtype],
-                i,
-                max = subscribers ? subscribers.length : 0;
-        for (i = 0; i < max; i += 1) {
-            if (action === "publish") {
-                subscribers[i].fn.call(subscribers[i].context, fn);
-            } else {
-                if (subscribers[i].fn === fn && subscribers[i].context === context) {
-                    subscribers.splice(i, 1);
+        var subscribers = this.subscribers[type];
+            type        = type || 'any';
+        try {
+            for (var i = 0; i < this.subscribers[type].length; i ++) {
+                if (action === "publish") {
+                    subscribers[i].fn.call(subscribers[i].context, fn);
+                } else {
+                    if (subscribers[i].fn === fn && subscribers[i].context === context) {
+                        subscribers[i].fn = function(){}
+                        subscribers[i].context = null;
+                    }
                 }
             }
+        } catch (err) {
+            console.log(err, err.fileName + ": " + err.lineNumber)
         }
     }
 };

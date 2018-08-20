@@ -1,17 +1,16 @@
 import QtQuick 2.9
 import QtQuick.Controls 2.2
+import QtQuick.Controls.Material 2.2
 
-Rectangle {
+Item {
     id: item
     objectName: "Item"
-    clip: true
 
-    gradient: Gradient {
-          GradientStop { position: 0.0; color: "lightblue" }
-          GradientStop { position: 0.1; color: "lightblue" }
-          GradientStop { position: 1.0; color: "white" }
-      }
+    width: parent.width
+    height: parent.height
 
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
     anchors.left: parent.left
     anchors.right: parent.right
 }

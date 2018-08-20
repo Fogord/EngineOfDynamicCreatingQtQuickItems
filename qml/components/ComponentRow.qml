@@ -5,5 +5,7 @@ Row {
     id: row
     objectName: "Row"
 
+//    anchors.verticalCenter: parent.verticalCenter
+
     property var algorithm: ({})
 }

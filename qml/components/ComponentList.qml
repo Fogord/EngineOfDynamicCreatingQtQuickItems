@@ -1,5 +1,6 @@
 import QtQuick 2.9
 import QtQuick.Controls 2.2
+import QtQuick.Controls.Material 2.2
 
 ListView {
     id: view
@@ -10,16 +11,19 @@ ListView {
     contentWidth: root.width - margin
     flickableDirection: Flickable.VerticalFlick
 
-    leftMargin: margin/2
+    leftMargin:  margin/2
     rightMargin: margin/2
-    spacing: margin/2
+    spacing:     margin/2
 
     signal rowsIsInserted
     signal rowsIsRemoved
-    signal itemChange
+    signal itemChanging
+    signal itemDeteils
     signal itemRemove
     signal showSearchFild
     signal hiddenSearchFild
+    signal addItem
+    signal changeMutedStatus
 
     property var algorithm: ({})
 
@@ -29,7 +33,10 @@ ListView {
     property int    margin           : 4
     property string iconChangeSource : ""
     property string iconRemoveSource : ""
-    property string borderColor      : "#808080"
+    property bool   isEditItems      : true
+
+    property double fontPixelSize    : 18
+
 
     ListModel {
         id: listModel
@@ -43,36 +50,36 @@ ListView {
         }
     }
 
-    highlight: Rectangle { color: "lightsteelblue"; radius: 5 }
+//    highlight: Rectangle {
+//        color: "#808080";
+//    }
+
 
     model: listModel
     focus: true
 
     onAtYBeginningChanged: {
-        if(atYBeginning && !atYEnd) {
+        if(atYBeginning && !atYEnd && isEditItems) {
             showSearchFild();
         }
     }
 
     onAtYEndChanged: {
-        if(!atYBeginning && atYEnd) {
+        if(!atYBeginning && atYEnd && isEditItems) {
             hiddenSearchFild();
         }
     }
-
-//    signal myselect(int playmode)
 
     onCurrentItemChanged: {
         currentIndexItemList = view.currentIndex
     }
 
-
     delegate:
         Flickable {
+
             id: flickItem
             width: parent.width
-            height: 30
-
+            height: 40
 
             onVisibleChanged: {
                 if (!visible){
@@ -94,18 +101,80 @@ ListView {
                     height: parent.height
 
                     Label {
-                        width: parent.width
+                        id: index
+                        width: parent.width * 0.05
+                        horizontalAlignment: Text.AlignLeft
+                        verticalAlignment: Text.AlignVCenter
+                        font.pixelSize: fontPixelSize
+                        text: (model.index + 1)
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: Material.color(Material.Orange)
+                    }
+
+                    Label {
+                        width: parent.width * 0.86
                         height: parent.height
                         horizontalAlignment: Text.AlignLeft
                         verticalAlignment: Text.AlignVCenter
-                        font.pixelSize: 16
-                        text: (model.index + 1) + ". " + model.name
-                        color: flickItem.ListView.isCurrentItem ? "black" : "grey"
+                        font.pixelSize: fontPixelSize
+                        text: model.name
+                        anchors.left: index.right
+                        anchors.leftMargin: 5
+                        anchors.verticalCenter: parent.verticalCenter
+//                        color: flickItem.ListView.isCurrentItem? Material.color(Material.Orange): "white"
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                view.currentIndex = model.index
+                                remove.width = change.width = content.x = 0
+                                hiddenSearchFild();
+                                itemDeteils()
+                            }
+                        }
+                    }
+
+                    Image{
+                        id: sound
+                        anchors.right: time.left
+                        anchors.rightMargin: 10
+                        anchors.verticalCenter: parent.verticalCenter
+                        source: model.muted?"qrc:/img/muted.png":"qrc:/img/unmuted.png"
+                        width: parent.height - 10
+                        visible: (model.muted !== undefined)
+                        fillMode: Image.PreserveAspectFit
+                        MouseArea {
+                            anchors.fill: sound
+                            onClicked: {
+                                view.currentIndex = model.index
+                                changeMutedStatus()
+                            }
+                        }
+                    }
+
+                    Label {
+                        id: time
+                        width: parent.width * 0.14
+                        horizontalAlignment: Text.AlignLeft
+                        verticalAlignment: Text.AlignVCenter
+                        font.pixelSize: fontPixelSize
+                        text: {
+                            if(model.seconds >= 0)
+                                Math.floor(model.seconds/60) + "." + ((model.seconds%60/10 < 1) ? "0" + model.seconds%60 :  model.seconds%60 )
+                            else
+                                ""
+                        }
+                        anchors.right: parent.right
+                        anchors.rightMargin: 10
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: model.color || "black"
+                        visible: (model.seconds >= 0)
                     }
 
                     Rectangle{
                         id: borderBottom
-                        color: borderColor
+                        color: Material.color(Material.Orange)
                         width: parent.width
                         anchors.bottom: parent.bottom
                         height: 1
@@ -116,7 +185,7 @@ ListView {
                     id: change
                     height: content.height
                     anchors.left: parent.left
-                    color: "lightskyblue"
+                    color: Material.color(Material.Orange)
 
                     Image {
                         id: iconChange
@@ -130,7 +199,7 @@ ListView {
                         id: changeRightBorder
                         height: row.height
                         width: 1
-                        color: borderColor
+                        color: Material.color(Material.Orange)
                         anchors.right: change.right
                         visible: change.width
                     }
@@ -139,8 +208,9 @@ ListView {
                         anchors.fill: change
                         onClicked: function() {
                             view.currentIndex = model.index
+                            remove.width = change.width = content.x = 0
                             hiddenSearchFild();
-                            itemChange()
+                            itemChanging()
                         }
                     }
                 }
@@ -149,7 +219,7 @@ ListView {
                     id: remove
                     height: content.height
                     anchors.right: parent.right
-                    color: "salmon"
+                    color: Material.color(Material.Red)
 
                     Image {
                         id: iconRemove
@@ -163,7 +233,7 @@ ListView {
                         id: removeLeftBorder
                         height: row.height
                         width: 1
-                        color: borderColor
+                        color: Material.color(Material.Red)
                         anchors.left: remove.left
                         visible: remove.width
                     }
@@ -172,20 +242,14 @@ ListView {
                         anchors.fill: remove
                         onClicked: function() {
                             view.currentIndex = model.index
+                            remove.width = change.width = content.x = 0
                             hiddenSearchFild();
                             itemRemove();
                         }
                     }
                 }
 
-                MouseArea {
-                    anchors.fill: content
-                    onClicked: {
-                        view.currentIndex = model.index
-                        remove.width = change.width = content.x = 0
-                        hiddenSearchFild();
-                    }
-                }
+
             }
 
             onAtXBeginningChanged: {
